@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: facebook-factcheck-api
+    env: docker
+    rootDir: backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: AI_FREE_DEMO_MODE
+        value: "true"
+      - key: SCRAPER_FREE_DEMO_MODE
+        value: "true"
+      - key: TRANSCRIPT_FREE_DEMO_MODE
+        value: "true"

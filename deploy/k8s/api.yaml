@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: factcheck-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: factcheck-api
+  template:
+    metadata:
+      labels:
+        app: factcheck-api
+    spec:
+      containers:
+        - name: api
+          image: factcheck-api:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: factcheck-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: factcheck-api
+spec:
+  selector:
+    app: factcheck-api
+  ports:
+    - port: 80
+      targetPort: 8000

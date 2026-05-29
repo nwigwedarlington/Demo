@@ -1,0 +1,71 @@
+name: Demo Automation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 9 * * *"
+
+jobs:
+  run-free-demo:
+    name: Run free automation demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run demo workflow
+        run: python scripts/run_free_demo.py
+
+  api-smoke:
+    name: API smoke test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: factcheck
+          POSTGRES_PASSWORD: factcheck
+          POSTGRES_DB: factcheck
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+asyncpg://factcheck:factcheck@localhost:5432/factcheck
+      SYNC_DATABASE_URL: postgresql://factcheck:factcheck@localhost:5432/factcheck
+      REDIS_URL: redis://localhost:6379/0
+      AI_FREE_DEMO_MODE: "true"
+      SCRAPER_FREE_DEMO_MODE: "true"
+      TRANSCRIPT_FREE_DEMO_MODE: "true"
+      JWT_SECRET: github-actions-demo-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e "backend[dev]"
+      - name: Start API
+        run: |
+          uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+          sleep 8
+        working-directory: backend
+      - name: Check health endpoint
+        run: curl --fail http://127.0.0.1:8000/health
+      - name: Create demo job
+        run: |
+          curl --fail -X POST http://127.0.0.1:8000/jobs \
+            -H "Content-Type: application/json" \
+            -d '{"url":"https://www.facebook.com/example/videos/123456789","source_type":"video"}'
