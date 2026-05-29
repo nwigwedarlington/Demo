@@ -1,6 +1,9 @@
 name: Demo Automation
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
   schedule:
     - cron: "17 9 * * *"
