@@ -45,7 +45,7 @@ async def _process_job(job_id: UUID) -> None:
 
             metadata, raw_comments = await FacebookScraper().scrape(job.url)
             comments = dedupe_and_clean_comments(raw_comments)
-            post = ScrapedPost(job_id=job.id, url=job.url, metadata=metadata)
+            post = ScrapedPost(job_id=job.id, url=job.url, post_metadata=metadata)
             db.add(post)
             await db.flush()
             for comment in comments:

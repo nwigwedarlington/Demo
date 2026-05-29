@@ -43,7 +43,7 @@ class ScrapedPost(Base, TimestampMixin):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     job_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("jobs.id"))
     url: Mapped[str] = mapped_column(Text)
-    metadata: Mapped[dict] = mapped_column(JSON, default=dict)
+    post_metadata: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
 
     job: Mapped[Job] = relationship(back_populates="scraped_posts")
     comments: Mapped[list["Comment"]] = relationship(back_populates="post")
